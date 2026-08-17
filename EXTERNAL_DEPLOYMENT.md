@@ -39,6 +39,12 @@ The Namecheap records in the supplied screenshot are GitHub Pages records. For t
 
 After DNS propagates, set `dreamsscoreai.com` as the primary domain, redirect `www.dreamsscoreai.com` to it (or the reverse), and enable the host’s managed HTTPS certificate.
 
+## Current domain audit
+
+At the time of this GitHub export, `dreamsscoreai.com` resolves to GitHub Pages IP addresses and returns a GitHub 404 response. A browser check also reports a certificate-name mismatch. The repository has no active GitHub Pages configuration. These conditions are consistent with the current GitHub Pages DNS records not being attached to a Pages site for this domain.
+
+Do not try to repair this through GitHub Pages: the current application requires a server and database. When the selected full-stack host is ready, replace the existing root and `www` GitHub Pages records only with the exact records the new host supplies, then complete its certificate verification.
+
 ## Environment inventory
 
 | Variable | Required for initial public launch | Purpose |
