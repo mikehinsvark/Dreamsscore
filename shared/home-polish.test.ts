@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 
 const homeSource = readFileSync(new URL("../client/src/pages/Home.tsx", import.meta.url), "utf8");
 const polishSource = readFileSync(new URL("../client/src/components/InteractionPolish.css", import.meta.url), "utf8");
+const restingAccentSource = readFileSync(new URL("../client/src/components/RestingCardAccents.css", import.meta.url), "utf8");
 
 describe("home visual polish", () => {
   it("keeps an accessible click-to-play hero poster backed by the local cover", () => {
@@ -17,5 +18,13 @@ describe("home visual polish", () => {
     ["d", "r", "e", "a", "m", "s"].forEach(code => {
       expect(polishSource).toContain(`.category-${code} { --card-accent:`);
     });
+  });
+
+  it("keeps visible category identity at rest and a lowered hero play control", () => {
+    expect(homeSource).toContain('import "@/components/RestingCardAccents.css"');
+    expect(restingAccentSource).toContain(".hero-film-play { transform: translateY");
+    expect(restingAccentSource).toContain(".dream-category-card { background: linear-gradient");
+    expect(restingAccentSource).toContain(".category-d { --card-rest:");
+    expect(restingAccentSource).toContain(".ai-promo-card::after");
   });
 });

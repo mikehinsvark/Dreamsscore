@@ -1,0 +1,15 @@
+/* Visible category identity at rest; hover remains the elevated interaction state. */
+.hero-film-play { transform: translateY(clamp(8px, 1vw, 13px)); }
+.hero-film-poster:hover .hero-film-play, .hero-film-poster:focus-visible .hero-film-play { transform: translateY(clamp(8px, 1vw, 13px)) scale(1.08); }
+.process-grid article { background: linear-gradient(135deg, color-mix(in srgb, var(--card-rest, #f7f8f5) 38%, #fffcf7) 0%, var(--card-rest, #f7f8f5) 100%) !important; }
+.process-grid article::after { content: ""; position: absolute; z-index: 1; top: 0; right: 0; left: 0; height: 3px; background: linear-gradient(90deg, var(--card-accent), color-mix(in srgb, var(--card-accent) 22%, transparent)); opacity: 0.9; }
+.process-grid article > i, .process-grid article > svg, .process-grid article > a { color: var(--card-accent); }
+.process-grid article:nth-child(1) { --card-rest: #d8f4ee; }.process-grid article:nth-child(2) { --card-rest: #dbe9ff; }.process-grid article:nth-child(3) { --card-rest: #ede0ff; }.process-grid article:nth-child(4) { --card-rest: #ffead0; }
+.ai-promo-card { border-color: rgba(127, 231, 219, 0.46); box-shadow: 0 13px 30px rgba(16, 27, 48, 0.19), 0 0 22px rgba(182, 144, 79, 0.11); }
+.ai-promo-card::after { content: ""; position: absolute; z-index: 0; inset: auto 9% 0; height: 3px; background: linear-gradient(90deg, #d7b670, #65d5ca, #d7b670); opacity: 0.9; }.ai-promo-card > * { position: relative; z-index: 1; }
+.category-d { --card-rest: #dceaff; }.category-r { --card-rest: #d8f5e7; }.category-e { --card-rest: #ffe8cc; }.category-a { --card-rest: #ecd9ff; }.category-m { --card-rest: #d7f3fa; }.category-s { --card-rest: #ffdce7; }
+.dream-category-card { background: linear-gradient(135deg, color-mix(in srgb, var(--card-rest, #f7f8f5) 38%, #fffcf7) 0%, var(--card-rest, #f7f8f5) 100%) !important; }
+.dream-category-card > span { color: #fff; background: var(--card-accent, #178f89) !important; box-shadow: 0 0 0 4px color-mix(in srgb, var(--card-accent, #178f89) 10%, transparent); }
+.dream-category-card small { border-top-color: color-mix(in srgb, var(--card-accent, #178f89) 25%, #ded8cd); color: color-mix(in srgb, var(--card-accent, #178f89) 72%, #526073); }
+@media (hover: hover) and (pointer: fine) { .dream-category-card.dream-category-card:hover { background: linear-gradient(135deg, color-mix(in srgb, var(--card-rest) 44%, #fffcf7) 0%, color-mix(in srgb, var(--card-accent) 22%, #fffcf7) 100%) !important; } }
+@media (max-width: 620px) { .hero-film-play { transform: translateY(7px); }.hero-film-poster:hover .hero-film-play, .hero-film-poster:focus-visible .hero-film-play { transform: translateY(7px) scale(1.06); } }

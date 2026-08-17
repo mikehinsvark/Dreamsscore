@@ -5,6 +5,7 @@ import { PageIndex, RobertGuide, SiteFooter, SiteHeader } from "@/components/Sit
 import { DreamsCarousel } from "@/components/DreamsCarousel";
 import { SectionNavigator } from "@/components/SectionNavigator";
 import "@/components/InteractionPolish.css";
+import "@/components/RestingCardAccents.css";
 import { destinations } from "@/lib/destinations";
 import { landingSectionIndex } from "@shared/navigation";
 
