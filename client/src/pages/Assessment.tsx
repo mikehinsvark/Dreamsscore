@@ -1,11 +1,16 @@
 import { ArrowLeft, ArrowRight, Check, CircleAlert, Loader2 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { createContext, useContext, useMemo, useState } from "react";
 import { useLocation } from "wouter";
 import { assessmentInputSchema, emptyAssessment, type AssessmentInput } from "@shared/dreams";
 import { RobertGuide, SiteHeader } from "@/components/SiteChrome";
 import { trpc } from "@/lib/trpc";
 
-type FieldProps<K extends keyof AssessmentInput> = { label: string; field: K; hint?: string; type?: "text" | "email" | "tel" | "number" };
+type FieldProps = { label: string; field: keyof AssessmentInput; hint?: string; type?: "text" | "email" | "tel" | "number" };
+type AssessmentTextFieldProps = FieldProps & { value: string | number; draftValue?: string; onTextChange: (field: keyof AssessmentInput, value: string) => void; onNumberChange: (field: keyof AssessmentInput, value: string) => void; onNumberBlur: (field: keyof AssessmentInput) => void; };
+function AssessmentTextField({ label, field, hint, type = "text", value, draftValue, onTextChange, onNumberChange, onNumberBlur }: AssessmentTextFieldProps) { const isNumber = type === "number"; return <label className="form-field"><span>{label}</span>{hint && <small>{hint}</small>}<input type={type} inputMode={isNumber ? "decimal" : undefined} value={isNumber ? draftValue ?? String(value) : String(value)} onChange={(event) => isNumber ? onNumberChange(field, event.target.value) : onTextChange(field, event.target.value)} onBlur={() => isNumber && onNumberBlur(field)} /></label>; }
+type AssessmentFieldContextValue = { form: AssessmentInput; numericDrafts: Partial<Record<keyof AssessmentInput, string>>; setTextField: (field: keyof AssessmentInput, value: string) => void; setNumberField: (field: keyof AssessmentInput, value: string) => void; commitNumberField: (field: keyof AssessmentInput) => void; };
+const AssessmentFieldContext = createContext<AssessmentFieldContextValue | null>(null);
+function TextField(props: FieldProps) { const context = useContext(AssessmentFieldContext); if (!context) throw new Error("Assessment text fields require assessment form context."); return <AssessmentTextField {...props} value={context.form[props.field] as string | number} draftValue={context.numericDrafts[props.field]} onTextChange={context.setTextField} onNumberChange={context.setNumberField} onNumberBlur={context.commitNumberField} />; }
 
 const steps = [
   { code: "1", label: "Business Info" },
@@ -18,11 +23,13 @@ const steps = [
 ];
 
 const industries = ["Manufacturing", "Technology", "Healthcare", "Construction", "Transportation & Logistics", "Hospitality & Food Service", "Retail", "Professional Services", "Real Estate", "Financial Services", "Education", "Energy", "Agriculture", "Other"];
+const assessmentGuidanceIds = ["assessmentBusiness", "assessmentDebt", "assessmentRetirement", "assessmentExpenses", "assessmentAssets", "assessmentMoney", "assessmentSecurity"] as const;
 
 export default function Assessment() {
   const [, navigate] = useLocation();
   const [step, setStep] = useState(0);
   const [form, setForm] = useState<AssessmentInput>(emptyAssessment);
+  const [numericDrafts, setNumericDrafts] = useState<Partial<Record<keyof AssessmentInput, string>>>({});
   const [submitError, setSubmitError] = useState("");
   const createReport = trpc.dreams.createReport.useMutation({
     onSuccess: ({ id }) => navigate(`/report/${id}`),
@@ -31,11 +38,9 @@ export default function Assessment() {
 
   const progress = useMemo(() => Math.round(((step + 1) / steps.length) * 100), [step]);
   const setField = <K extends keyof AssessmentInput>(field: K, value: AssessmentInput[K]) => setForm((current) => ({ ...current, [field]: value }));
-
-  const TextField = <K extends keyof AssessmentInput>({ label, field, hint, type = "text" }: FieldProps<K>) => {
-    const isNumber = type === "number";
-    return <label className="form-field"><span>{label}</span>{hint && <small>{hint}</small>}<input type={type} value={form[field] as string | number} onChange={(event) => setField(field, (isNumber ? Math.max(0, Number(event.target.value) || 0) : event.target.value) as AssessmentInput[K])} /></label>;
-  };
+  const setTextField = (field: keyof AssessmentInput, value: string) => setField(field, value as AssessmentInput[typeof field]);
+  const setNumberField = (field: keyof AssessmentInput, rawValue: string) => { setNumericDrafts((current) => ({ ...current, [field]: rawValue })); const parsed = Number(rawValue); if (rawValue !== "" && Number.isFinite(parsed)) setField(field, Math.max(0, parsed) as AssessmentInput[typeof field]); };
+  const commitNumberField = (field: keyof AssessmentInput) => { if (numericDrafts[field] === "") setField(field, 0 as AssessmentInput[typeof field]); setNumericDrafts((current) => { const { [field]: _draft, ...remaining } = current; return remaining; }); };
 
   const stepContent = [
     <div className="assessment-fields two-col" key="business">
@@ -96,12 +101,12 @@ export default function Assessment() {
       </div>
       <section className="assessment-card paper-card">
         <div className="assessment-card-heading"><div><span className="eyebrow">{steps[step].code} · {steps[step].label}</span><h2>{step === 0 ? "Tell us about your business" : steps[step].label}</h2><p>{descriptions[step]}</p></div><span className="step-counter">0{step + 1}</span></div>
-        {stepContent[step]}
+        <AssessmentFieldContext.Provider value={{ form, numericDrafts, setTextField, setNumberField, commitNumberField }}>{stepContent[step]}</AssessmentFieldContext.Provider>
         {submitError && <p className="form-error"><CircleAlert size={16} /> {submitError}</p>}
         <div className="assessment-actions"><button className="button button-outline" type="button" disabled={step === 0 || createReport.isPending} onClick={() => setStep((current) => Math.max(0, current - 1))}><ArrowLeft size={16} /> Back</button><button className="button button-primary" type="button" disabled={createReport.isPending} onClick={advance}>{createReport.isPending ? <><Loader2 className="spin" size={16} /> Building your report</> : step === steps.length - 1 ? <>Generate my report <ArrowRight size={16} /></> : <>Continue <ArrowRight size={16} /></>}</button></div>
       </section>
       <p className="assessment-disclaimer">All figures will be estimates based on the limited information you provide. No outcome is guaranteed; a qualified specialist can provide a complete, personalized proposal.</p>
     </main>
-    <RobertGuide />
+    <RobertGuide context={assessmentGuidanceIds[step]} />
   </div>;
 }

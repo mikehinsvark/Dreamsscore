@@ -52,7 +52,7 @@ export const appRouter = router({
       }),
   }),
   voice: router({
-    getRobertNarration: publicProcedure.input(z.object({ guide: z.enum(["home", "assessment", "report", "aiVisibility"]) })).mutation(async ({ input }) => getRobertNarration(input.guide)),
+    getRobertNarration: publicProcedure.input(z.object({ guide: z.enum(["home", "assessment", "assessmentBusiness", "assessmentDebt", "assessmentRetirement", "assessmentExpenses", "assessmentAssets", "assessmentMoney", "assessmentSecurity", "report", "aiVisibility"]) })).mutation(async ({ input }) => getRobertNarration(input.guide)),
   }),
 });
 

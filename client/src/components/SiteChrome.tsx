@@ -146,12 +146,20 @@ export function BackToTop() {
   }}><ArrowUp size={16} /><span>Top</span></button>;
 }
 
-const guideCopy: Array<{ id: "home" | "assessment" | "report" | "aiVisibility"; match: string; note: string }> = [
+export type RobertGuideId = "home" | "assessment" | "assessmentBusiness" | "assessmentDebt" | "assessmentRetirement" | "assessmentExpenses" | "assessmentAssets" | "assessmentMoney" | "assessmentSecurity" | "report" | "aiVisibility";
+const guideCopy: Array<{ id: RobertGuideId; match: string; note: string }> = [
   {
     id: "assessment",
     match: "/assessment",
     note: "I’ll help you move through each section. Your inputs are used to prepare directional estimates—not guarantees.",
   },
+  { id: "assessmentBusiness", match: "/assessment", note: "Let’s begin with the basics. This information gives your DREAMS Score the right business context." },
+  { id: "assessmentDebt", match: "/assessment", note: "Now we’re looking at Debt and Funding. Share broad amounts only, so we can surface capital and cash-flow conversations worth exploring." },
+  { id: "assessmentRetirement", match: "/assessment", note: "This section looks at retirement readiness. High-level balances, contributions, and participation are enough to create a useful starting point." },
+  { id: "assessmentExpenses", match: "/assessment", note: "Next, we’ll review recurring operating expenses. These broad figures can reveal questions worth taking to a qualified specialist." },
+  { id: "assessmentAssets", match: "/assessment", note: "Here we look at growth assets: website leads, lead value, marketing, and reputation. Use practical estimates." },
+  { id: "assessmentMoney", match: "/assessment", note: "This section covers possible tax-credit questions. Enter high-level research, tip-wage, and credit information—nothing sensitive is needed." },
+  { id: "assessmentSecurity", match: "/assessment", note: "You’re at the final section. These protection and technology costs help frame business-resilience questions for a specialist review." },
   {
     id: "report",
     match: "/report",
@@ -169,7 +177,7 @@ const guideCopy: Array<{ id: "home" | "assessment" | "report" | "aiVisibility"; 
   },
 ];
 
-export function RobertGuide() {
+export function RobertGuide({ context }: { context?: RobertGuideId }) {
   const [location] = useLocation();
   const [expanded, setExpanded] = useState(true);
   const [isSpeaking, setIsSpeaking] = useState(false);
@@ -179,7 +187,7 @@ export function RobertGuide() {
   const audioUrlRef = useRef<string | null>(null);
   const narrationRequestRef = useRef(0);
   const narration = trpc.voice.getRobertNarration.useMutation();
-  const matchedCopy = guideCopy.find((item) => location.startsWith(item.match)) ?? guideCopy[3];
+  const matchedCopy = context ? guideCopy.find((item) => item.id === context) ?? guideCopy[0] : guideCopy.find((item) => location.startsWith(item.match)) ?? guideCopy[3];
 
   const stopRobertVoice = () => {
     narrationRequestRef.current += 1;
@@ -215,7 +223,7 @@ export function RobertGuide() {
     setIsSpeaking(false);
     setIsPreparing(false);
     setVoiceStatus("Robert’s guidance changed. Select Listen to Robert to hear this page’s guidance.");
-  }, [location]);
+  }, [location, matchedCopy.id]);
 
   return (
     <aside className={`robert-guide ${expanded ? "is-expanded" : "is-collapsed"}`} aria-label="Robert, your AI DREAMS Guide">
