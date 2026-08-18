@@ -6,6 +6,7 @@ import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, router } from "./_core/trpc";
 import { createAssessmentReport, getAssessmentReportById } from "./db";
+import { getRobertNarration } from "./elevenlabs";
 
 export const appRouter = router({
     // if you need to use socket.io, read and register route in server/_core/index.ts, all api should start with '/api/' so that the gateway can route correctly
@@ -49,6 +50,9 @@ export const appRouter = router({
         }
         return record;
       }),
+  }),
+  voice: router({
+    getRobertNarration: publicProcedure.input(z.object({ guide: z.enum(["home", "assessment", "report", "aiVisibility"]) })).mutation(async ({ input }) => getRobertNarration(input.guide)),
   }),
 });
 

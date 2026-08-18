@@ -1,8 +1,9 @@
-import { ArrowUp, BarChart3, ChevronRight, Menu, Sparkles, Square, Volume2, X } from "lucide-react";
+import { ArrowUp, BarChart3, ChevronRight, LoaderCircle, Menu, Sparkles, Square, Volume2, X } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { useEffect, useRef, useState } from "react";
 import { destinations } from "@/lib/destinations";
 import type { SectionIndexItem } from "@shared/navigation";
+import { trpc } from "@/lib/trpc";
 import "@/components/RobertVoice.css";
 
 const navItems = [
@@ -145,20 +146,24 @@ export function BackToTop() {
   }}><ArrowUp size={16} /><span>Top</span></button>;
 }
 
-const guideCopy: Array<{ match: string; note: string }> = [
+const guideCopy: Array<{ id: "home" | "assessment" | "report" | "aiVisibility"; match: string; note: string }> = [
   {
+    id: "assessment",
     match: "/assessment",
     note: "I’ll help you move through each section. Your inputs are used to prepare directional estimates—not guarantees.",
   },
   {
+    id: "report",
     match: "/report",
     note: "Your report organizes potential opportunities for review. A qualified specialist can help validate what applies to your business.",
   },
   {
+    id: "aiVisibility",
     match: "/ai-visibility",
     note: "I’ll help you frame a quick first look at how discoverable your business may be in AI-assisted search.",
   },
   {
+    id: "home",
     match: "/",
     note: "Welcome. In about 15 minutes, you can see directional savings, profit, and protection opportunities across six business areas.",
   },
@@ -167,52 +172,48 @@ const guideCopy: Array<{ match: string; note: string }> = [
 export function RobertGuide() {
   const [location] = useLocation();
   const [expanded, setExpanded] = useState(true);
-  const [speechSupported, setSpeechSupported] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const [isPreparing, setIsPreparing] = useState(false);
   const [voiceStatus, setVoiceStatus] = useState("Ready to read Robert’s guidance aloud.");
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const audioUrlRef = useRef<string | null>(null);
+  const narrationRequestRef = useRef(0);
+  const narration = trpc.voice.getRobertNarration.useMutation();
   const matchedCopy = guideCopy.find((item) => location.startsWith(item.match)) ?? guideCopy[3];
 
   const stopRobertVoice = () => {
-    if (typeof window !== "undefined" && "speechSynthesis" in window) window.speechSynthesis.cancel();
+    narrationRequestRef.current += 1;
+    audioRef.current?.pause();
+    audioRef.current = null;
+    if (audioUrlRef.current) URL.revokeObjectURL(audioUrlRef.current);
+    audioUrlRef.current = null;
     setIsSpeaking(false);
+    setIsPreparing(false);
     setVoiceStatus("Robert’s voice guidance has stopped.");
   };
 
   const toggleRobertVoice = () => {
-    if (!speechSupported) {
-      setVoiceStatus("Voice playback is not available in this browser.");
-      return;
-    }
-    if (isSpeaking) {
+    if (isSpeaking || isPreparing) {
       stopRobertVoice();
       return;
     }
-    window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(matchedCopy.note);
-    utterance.rate = 0.94;
-    utterance.pitch = 0.96;
-    utterance.onend = () => {
-      setIsSpeaking(false);
-      setVoiceStatus("Robert has finished speaking.");
-    };
-    utterance.onerror = () => {
-      setIsSpeaking(false);
-      setVoiceStatus("Robert’s voice could not start. Please try again.");
-    };
-    setIsSpeaking(true);
-    setVoiceStatus("Robert is speaking. Select Stop listening at any time.");
-    window.speechSynthesis.speak(utterance);
+    const requestId = narrationRequestRef.current + 1;
+    narrationRequestRef.current = requestId;
+    setIsPreparing(true);
+    setVoiceStatus("Preparing Robert’s professional voice.");
+    narration.mutate({ guide: matchedCopy.id }, { onSuccess: ({ audioBase64, mimeType }) => { if (requestId !== narrationRequestRef.current) return; const bytes = Uint8Array.from(atob(audioBase64), (character) => character.charCodeAt(0)); const objectUrl = URL.createObjectURL(new Blob([bytes], { type: mimeType })); const audio = new Audio(objectUrl); audioRef.current = audio; audioUrlRef.current = objectUrl; audio.onended = () => { if (requestId !== narrationRequestRef.current) return; setIsSpeaking(false); setVoiceStatus("Robert has finished speaking."); URL.revokeObjectURL(objectUrl); audioUrlRef.current = null; }; audio.onerror = () => { if (requestId !== narrationRequestRef.current) return; setIsSpeaking(false); setVoiceStatus("Robert’s professional voice could not play. Please try again."); URL.revokeObjectURL(objectUrl); audioUrlRef.current = null; }; setIsPreparing(false); setIsSpeaking(true); setVoiceStatus("Robert is speaking. Select Stop listening at any time."); void audio.play().catch(() => audio.onerror?.(new Event("error"))); }, onError: () => { if (requestId !== narrationRequestRef.current) return; setIsPreparing(false); setIsSpeaking(false); setVoiceStatus("Robert’s professional voice is temporarily unavailable. Please try again."); } });
   };
 
   useEffect(() => {
-    setSpeechSupported("speechSynthesis" in window && "SpeechSynthesisUtterance" in window);
-    return () => window.speechSynthesis?.cancel();
+    return () => { audioRef.current?.pause(); if (audioUrlRef.current) URL.revokeObjectURL(audioUrlRef.current); };
   }, []);
 
   useEffect(() => {
-    if (!isSpeaking) return;
-    window.speechSynthesis.cancel();
+    if (!isSpeaking && !isPreparing) return;
+    narrationRequestRef.current += 1;
+    audioRef.current?.pause();
     setIsSpeaking(false);
+    setIsPreparing(false);
     setVoiceStatus("Robert’s guidance changed. Select Listen to Robert to hear this page’s guidance.");
   }, [location]);
 
@@ -226,8 +227,8 @@ export function RobertGuide() {
       {expanded && (
         <div className="robert-body">
           <p>{matchedCopy.note}</p>
-          <button type="button" className={`robert-listen-button ${isSpeaking ? "is-speaking" : ""}`} onClick={toggleRobertVoice} aria-pressed={isSpeaking}>
-            {isSpeaking ? <Square size={12} fill="currentColor" /> : <Volume2 size={15} />}<span>{isSpeaking ? "Stop listening" : "Listen to Robert"}</span>
+          <button type="button" className={`robert-listen-button ${isSpeaking || isPreparing ? "is-speaking" : ""}`} onClick={toggleRobertVoice} aria-pressed={isSpeaking} aria-busy={isPreparing}>
+            {isPreparing ? <LoaderCircle size={15} className="robert-listen-spinner" /> : isSpeaking ? <Square size={12} fill="currentColor" /> : <Volume2 size={15} />}<span>{isPreparing ? "Preparing Robert" : isSpeaking ? "Stop listening" : "Listen to Robert"}</span>
           </button>
           <span className="robert-voice-status" role="status" aria-live="polite">{voiceStatus}</span>
           <span className="robert-status">Guidance mode · no live chat enabled</span>
