@@ -11,6 +11,7 @@ describe("Robert voice guidance", () => {
     expect(guideSource).toContain('"Listen to Robert"');
     expect(guideSource).toContain('"Stop listening"');
     expect(guideSource).toContain('aria-pressed={isSpeaking}');
+    expect(guideSource).toContain('event.key === " " && (isSpeaking || isPreparing)');
   });
 
   it("uses professional audio playback with pending and error states", () => {

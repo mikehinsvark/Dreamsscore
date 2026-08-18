@@ -227,7 +227,7 @@ export function RobertGuide() {
       {expanded && (
         <div className="robert-body">
           <p>{matchedCopy.note}</p>
-          <button type="button" className={`robert-listen-button ${isSpeaking || isPreparing ? "is-speaking" : ""}`} onClick={toggleRobertVoice} aria-pressed={isSpeaking} aria-busy={isPreparing}>
+          <button type="button" className={`robert-listen-button ${isSpeaking || isPreparing ? "is-speaking" : ""}`} onClick={toggleRobertVoice} onKeyDown={(event) => { if (event.key === " " && (isSpeaking || isPreparing)) { event.preventDefault(); stopRobertVoice(); } }} aria-pressed={isSpeaking} aria-busy={isPreparing}>
             {isPreparing ? <LoaderCircle size={15} className="robert-listen-spinner" /> : isSpeaking ? <Square size={12} fill="currentColor" /> : <Volume2 size={15} />}<span>{isPreparing ? "Preparing Robert" : isSpeaking ? "Stop listening" : "Listen to Robert"}</span>
           </button>
           <span className="robert-voice-status" role="status" aria-live="polite">{voiceStatus}</span>
