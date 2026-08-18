@@ -1,8 +1,9 @@
-import { ArrowUp, BarChart3, ChevronRight, Menu, Sparkles, X } from "lucide-react";
+import { ArrowUp, BarChart3, ChevronRight, Menu, Sparkles, Square, Volume2, X } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { useEffect, useRef, useState } from "react";
 import { destinations } from "@/lib/destinations";
 import type { SectionIndexItem } from "@shared/navigation";
+import "@/components/RobertVoice.css";
 
 const navItems = [
   { label: "Overview", href: "/#overview" },
@@ -166,7 +167,54 @@ const guideCopy: Array<{ match: string; note: string }> = [
 export function RobertGuide() {
   const [location] = useLocation();
   const [expanded, setExpanded] = useState(true);
+  const [speechSupported, setSpeechSupported] = useState(false);
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const [voiceStatus, setVoiceStatus] = useState("Ready to read Robert’s guidance aloud.");
   const matchedCopy = guideCopy.find((item) => location.startsWith(item.match)) ?? guideCopy[3];
+
+  const stopRobertVoice = () => {
+    if (typeof window !== "undefined" && "speechSynthesis" in window) window.speechSynthesis.cancel();
+    setIsSpeaking(false);
+    setVoiceStatus("Robert’s voice guidance has stopped.");
+  };
+
+  const toggleRobertVoice = () => {
+    if (!speechSupported) {
+      setVoiceStatus("Voice playback is not available in this browser.");
+      return;
+    }
+    if (isSpeaking) {
+      stopRobertVoice();
+      return;
+    }
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(matchedCopy.note);
+    utterance.rate = 0.94;
+    utterance.pitch = 0.96;
+    utterance.onend = () => {
+      setIsSpeaking(false);
+      setVoiceStatus("Robert has finished speaking.");
+    };
+    utterance.onerror = () => {
+      setIsSpeaking(false);
+      setVoiceStatus("Robert’s voice could not start. Please try again.");
+    };
+    setIsSpeaking(true);
+    setVoiceStatus("Robert is speaking. Select Stop listening at any time.");
+    window.speechSynthesis.speak(utterance);
+  };
+
+  useEffect(() => {
+    setSpeechSupported("speechSynthesis" in window && "SpeechSynthesisUtterance" in window);
+    return () => window.speechSynthesis?.cancel();
+  }, []);
+
+  useEffect(() => {
+    if (!isSpeaking) return;
+    window.speechSynthesis.cancel();
+    setIsSpeaking(false);
+    setVoiceStatus("Robert’s guidance changed. Select Listen to Robert to hear this page’s guidance.");
+  }, [location]);
 
   return (
     <aside className={`robert-guide ${expanded ? "is-expanded" : "is-collapsed"}`} aria-label="Robert, your AI DREAMS Guide">
@@ -178,6 +226,10 @@ export function RobertGuide() {
       {expanded && (
         <div className="robert-body">
           <p>{matchedCopy.note}</p>
+          <button type="button" className={`robert-listen-button ${isSpeaking ? "is-speaking" : ""}`} onClick={toggleRobertVoice} aria-pressed={isSpeaking}>
+            {isSpeaking ? <Square size={12} fill="currentColor" /> : <Volume2 size={15} />}<span>{isSpeaking ? "Stop listening" : "Listen to Robert"}</span>
+          </button>
+          <span className="robert-voice-status" role="status" aria-live="polite">{voiceStatus}</span>
           <span className="robert-status">Guidance mode · no live chat enabled</span>
         </div>
       )}
