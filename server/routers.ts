@@ -7,6 +7,7 @@ import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, router } from "./_core/trpc";
 import { createAssessmentReport, getAssessmentReportById } from "./db";
 import { getRobertNarration } from "./elevenlabs";
+import { brandedReportPdfInputSchema, createBrandedReportPdf } from "./reportPdf";
 
 export const appRouter = router({
     // if you need to use socket.io, read and register route in server/_core/index.ts, all api should start with '/api/' so that the gateway can route correctly
@@ -50,6 +51,7 @@ export const appRouter = router({
         }
         return record;
       }),
+    downloadBrandedPdf: publicProcedure.input(brandedReportPdfInputSchema).mutation(async ({ input }) => createBrandedReportPdf(input.report)),
   }),
   voice: router({
     getRobertNarration: publicProcedure.input(z.object({ guide: z.enum(["home", "assessment", "assessmentBusiness", "assessmentDebt", "assessmentRetirement", "assessmentExpenses", "assessmentAssets", "assessmentMoney", "assessmentSecurity", "report", "aiVisibility"]) })).mutation(async ({ input }) => getRobertNarration(input.guide)),

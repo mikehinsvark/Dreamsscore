@@ -6,6 +6,7 @@ import { RobertGuide, SiteHeader } from "@/components/SiteChrome";
 import { trpc } from "@/lib/trpc";
 import "@/components/AssessmentEnhancements.css";
 import "@/components/AssessmentColorSystem.css";
+import "@/components/AssessmentDivider.css";
 
 type FieldProps = { label: string; field: keyof AssessmentInput; hint?: string; placeholder?: string; optional?: boolean; type?: "text" | "email" | "tel" | "number" };
 type AssessmentTextFieldProps = FieldProps & { value: string | number; draftValue?: string; onTextChange: (field: keyof AssessmentInput, value: string) => void; onNumberChange: (field: keyof AssessmentInput, value: string) => void; onNumberBlur: (field: keyof AssessmentInput) => void; };
@@ -105,6 +106,7 @@ export default function Assessment() {
     <SiteHeader compact />
     <main className={`assessment-main shell assessment-theme-${stepThemes[step]}`}>
       <div className="assessment-intro"><span className="eyebrow">Business financial assessment</span><h1>Build your DREAMS Score.</h1><p>Answer a few high-level questions. Your personalized report will show directional estimates across six business areas.</p></div>
+      <div className="assessment-pillar-divider" aria-hidden="true"><span /><span /><span /><span /><span /><span /></div>
       <div className="progress-card paper-card">
         <div className="progress-topline"><span>Step {step + 1} of 7</span><strong>{progress}%</strong></div>
         <div className="progress-track"><span style={{ width: `${progress}%` }} /></div>

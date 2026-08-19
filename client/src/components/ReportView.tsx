@@ -5,7 +5,9 @@ import { formatEstimate } from "@shared/dreams";
 import { destinationForCategory, destinations } from "@/lib/destinations";
 import { PageIndex } from "@/components/SiteChrome";
 import { reportSectionIndex } from "@shared/navigation";
+import { trpc } from "@/lib/trpc";
 import "@/components/ReportColorSystem.css";
+import "@/components/ReportEnhancements.css";
 
 const palette: Record<string, string> = {
   D: "category-sky",
@@ -16,9 +18,27 @@ const palette: Record<string, string> = {
   S: "category-rose",
 };
 
+function PillarDivider({ label }: { label: string }) {
+  return <div className="report-pillar-divider" aria-hidden="true"><span>{label}</span><i /><i /><i /><i /><i /><i /></div>;
+}
+
 export function ReportView({ report, sample = false }: { report: DreamsReport; sample?: boolean }) {
   const [openCategory, setOpenCategory] = useState<string>(report.categories[0]?.code ?? "D");
+  const [pdfStatus, setPdfStatus] = useState("");
   const maxCategoryTotal = Math.max(...report.categories.map((category) => category.total), 1);
+  const brandedPdf = trpc.dreams.downloadBrandedPdf.useMutation();
+  const downloadBrandedPdf = () => {
+    setPdfStatus("Preparing your branded color PDF…");
+    brandedPdf.mutate({ report }, {
+      onSuccess: ({ base64, filename, mimeType }) => {
+        const bytes = Uint8Array.from(window.atob(base64), (character) => character.charCodeAt(0));
+        const url = URL.createObjectURL(new Blob([bytes], { type: mimeType }));
+        const link = document.createElement("a"); link.href = url; link.download = filename; document.body.appendChild(link); link.click(); link.remove(); window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
+        setPdfStatus("Your branded color PDF download has started.");
+      },
+      onError: () => setPdfStatus("We could not prepare the PDF just now. Use Print to save the colorful report as a PDF instead."),
+    });
+  };
 
   return (
     <div className="report-document">
@@ -30,9 +50,11 @@ export function ReportView({ report, sample = false }: { report: DreamsReport; s
           <p>{report.industry} <span>·</span> {report.employeeCount.toLocaleString()} employees <span>·</span> Generated {new Date(report.generatedAt).toLocaleDateString()}</p>
         </div>
         <div className="report-actions print-hidden">
+          <button className="button button-outline button-small" type="button" onClick={downloadBrandedPdf} disabled={brandedPdf.isPending}><Download size={15} /> {brandedPdf.isPending ? "Preparing PDF" : "Download color PDF"}</button>
           <button className="button button-outline button-small" type="button" onClick={() => window.print()}><Printer size={15} /> Print</button>
           <a className="button button-primary button-small" href={destinations.booking}>Discuss findings <ChevronRight size={15} /></a>
         </div>
+        <p className="report-download-status print-hidden" role="status" aria-live="polite">{pdfStatus}</p>
         <div className="kpi-grid">
           <article className="report-kpi kpi-savings">
             <span>Total Est. Annual Savings</span>
@@ -52,10 +74,14 @@ export function ReportView({ report, sample = false }: { report: DreamsReport; s
         </div>
       </section>
 
+      <PillarDivider label="SIX-PILLAR OPPORTUNITY MAP" />
       <section className="paper-card report-overview" id="category-scores">
         <div className="section-heading report-section-heading">
           <div><span className="eyebrow">At a glance</span><h2>DREAMS Score overview</h2></div>
           <p>Six business lenses surface areas worth specialist review.</p>
+        </div>
+        <div className="report-category-legend" aria-label="DREAMS category color legend">
+          {report.categories.map((category) => <span className={`report-color-${category.code}`} key={category.code}><i>{category.code}</i><strong>{category.name}</strong></span>)}
         </div>
         <div className="category-summary-list">
           {report.categories.map((category) => (
@@ -71,6 +97,7 @@ export function ReportView({ report, sample = false }: { report: DreamsReport; s
         </div>
       </section>
 
+      <PillarDivider label="COLOR-CODED FINDINGS" />
       <section className="report-findings" id="recommendations">
         <div className="section-heading">
           <div><span className="eyebrow">Detailed findings</span><h2>Review the opportunity areas.</h2></div>
@@ -120,6 +147,7 @@ export function ReportView({ report, sample = false }: { report: DreamsReport; s
         </div>
       </section>
 
+      <PillarDivider label="NEXT STEP" />
       <section className="report-next-step paper-card" id="consultation">
         <span className="eyebrow">Next step</span>
         <h2>Turn the estimates into a focused conversation.</h2>
