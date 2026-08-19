@@ -51,10 +51,21 @@ export const appRouter = router({
         }
         return record;
       }),
-    downloadBrandedPdf: publicProcedure.input(brandedReportPdfInputSchema).mutation(async ({ input }) => createBrandedReportPdf(input.report)),
+    downloadBrandedPdf: publicProcedure
+      .input(brandedReportPdfInputSchema)
+      .mutation(async ({ input }) => createBrandedReportPdf(input.report, input.coverMessage)),
+    downloadBrandedPdfById: publicProcedure
+      .input(z.object({ id: z.string().min(8).max(32), coverMessage: z.string().trim().max(480).optional() }))
+      .mutation(async ({ input }) => {
+        const record = await getAssessmentReportById(input.id);
+        if (!record) throw new Error("Report unavailable");
+        return createBrandedReportPdf(record.reportJson as Parameters<typeof createBrandedReportPdf>[0], input.coverMessage);
+      }),
   }),
   voice: router({
-    getRobertNarration: publicProcedure.input(z.object({ guide: z.enum(["home", "assessment", "assessmentBusiness", "assessmentDebt", "assessmentRetirement", "assessmentExpenses", "assessmentAssets", "assessmentMoney", "assessmentSecurity", "report", "aiVisibility"]) })).mutation(async ({ input }) => getRobertNarration(input.guide)),
+    getRobertNarration: publicProcedure
+      .input(z.object({ guide: z.enum(["home", "assessment", "assessmentBusiness", "assessmentDebt", "assessmentRetirement", "assessmentExpenses", "assessmentAssets", "assessmentMoney", "assessmentSecurity", "report", "aiVisibility"]) }))
+      .mutation(async ({ input }) => getRobertNarration(input.guide)),
   }),
 });
 

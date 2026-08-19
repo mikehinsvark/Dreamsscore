@@ -1,11 +1,12 @@
 import { ChevronDown, ChevronRight, Download, Printer, ShieldCheck } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { DreamsReport } from "@shared/dreams";
 import { formatEstimate } from "@shared/dreams";
 import { destinationForCategory, destinations } from "@/lib/destinations";
 import { PageIndex } from "@/components/SiteChrome";
 import { reportSectionIndex } from "@shared/navigation";
 import { trpc } from "@/lib/trpc";
+import { saveReportHistoryEntry } from "@/lib/reportHistory";
 import "@/components/ReportColorSystem.css";
 import "@/components/ReportEnhancements.css";
 
@@ -22,18 +23,28 @@ function PillarDivider({ label }: { label: string }) {
   return <div className="report-pillar-divider" aria-hidden="true"><span>{label}</span><i /><i /><i /><i /><i /><i /></div>;
 }
 
-export function ReportView({ report, sample = false }: { report: DreamsReport; sample?: boolean }) {
+export function ReportView({ report, sample = false, reportId }: { report: DreamsReport; sample?: boolean; reportId?: string }) {
   const [openCategory, setOpenCategory] = useState<string>(report.categories[0]?.code ?? "D");
   const [pdfStatus, setPdfStatus] = useState("");
+  const [coverMessage, setCoverMessage] = useState("");
   const maxCategoryTotal = Math.max(...report.categories.map((category) => category.total), 1);
   const brandedPdf = trpc.dreams.downloadBrandedPdf.useMutation();
+  useEffect(() => {
+    if (reportId && !sample) saveReportHistoryEntry({ id: reportId, companyName: report.companyName, generatedAt: report.generatedAt, totalPotentialValue: report.totalPotentialValue });
+  }, [reportId, report.companyName, report.generatedAt, report.totalPotentialValue, sample]);
   const downloadBrandedPdf = () => {
     setPdfStatus("Preparing your branded color PDF…");
-    brandedPdf.mutate({ report }, {
+    brandedPdf.mutate({ report, coverMessage: coverMessage.trim() || undefined }, {
       onSuccess: ({ base64, filename, mimeType }) => {
         const bytes = Uint8Array.from(window.atob(base64), (character) => character.charCodeAt(0));
         const url = URL.createObjectURL(new Blob([bytes], { type: mimeType }));
-        const link = document.createElement("a"); link.href = url; link.download = filename; document.body.appendChild(link); link.click(); link.remove(); window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
         setPdfStatus("Your branded color PDF download has started.");
       },
       onError: () => setPdfStatus("We could not prepare the PDF just now. Use Print to save the colorful report as a PDF instead."),
@@ -50,6 +61,7 @@ export function ReportView({ report, sample = false }: { report: DreamsReport; s
           <p>{report.industry} <span>·</span> {report.employeeCount.toLocaleString()} employees <span>·</span> Generated {new Date(report.generatedAt).toLocaleDateString()}</p>
         </div>
         <div className="report-actions print-hidden">
+          <label className="report-cover-message"><span>Optional cover message</span><input value={coverMessage} maxLength={480} onChange={(event) => setCoverMessage(event.target.value)} placeholder="e.g., Prepared for your next business review." /></label>
           <button className="button button-outline button-small" type="button" onClick={downloadBrandedPdf} disabled={brandedPdf.isPending}><Download size={15} /> {brandedPdf.isPending ? "Preparing PDF" : "Download color PDF"}</button>
           <button className="button button-outline button-small" type="button" onClick={() => window.print()}><Printer size={15} /> Print</button>
           <a className="button button-primary button-small" href={destinations.booking}>Discuss findings <ChevronRight size={15} /></a>
