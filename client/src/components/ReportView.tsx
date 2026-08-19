@@ -5,14 +5,15 @@ import { formatEstimate } from "@shared/dreams";
 import { destinationForCategory, destinations } from "@/lib/destinations";
 import { PageIndex } from "@/components/SiteChrome";
 import { reportSectionIndex } from "@shared/navigation";
+import "@/components/ReportColorSystem.css";
 
 const palette: Record<string, string> = {
-  D: "category-mint",
-  R: "category-sky",
+  D: "category-sky",
+  R: "category-mint",
   E: "category-gold",
   A: "category-violet",
-  M: "category-rose",
-  S: "category-cyan",
+  M: "category-cyan",
+  S: "category-rose",
 };
 
 export function ReportView({ report, sample = false }: { report: DreamsReport; sample?: boolean }) {
@@ -58,7 +59,7 @@ export function ReportView({ report, sample = false }: { report: DreamsReport; s
         </div>
         <div className="category-summary-list">
           {report.categories.map((category) => (
-            <article className="category-summary" key={category.code}>
+            <article className={`category-summary report-color-${category.code}`} key={category.code}>
               <span className={`category-code ${palette[category.code]}`}>{category.code}</span>
               <div className="category-summary-main">
                 <div><h3>{category.name}</h3><span>{category.estimateKind === "savings" ? "Estimated savings" : "Estimated profit potential"}</span></div>
@@ -79,7 +80,7 @@ export function ReportView({ report, sample = false }: { report: DreamsReport; s
           {report.categories.map((category) => {
             const open = openCategory === category.code;
             return (
-              <article className={`report-accordion paper-card ${open ? "is-open" : ""}`} key={category.code}>
+              <article className={`report-accordion paper-card report-color-${category.code} ${open ? "is-open" : ""}`} key={category.code}>
                 <button className="accordion-trigger" type="button" onClick={() => setOpenCategory(open ? "" : category.code)} aria-expanded={open}>
                   <span className={`category-code ${palette[category.code]}`}>{category.code}</span>
                   <span className="accordion-title"><strong>{category.name}</strong><small>{category.summary}</small></span>

@@ -5,6 +5,7 @@ import { assessmentInputSchema, emptyAssessment, type AssessmentInput } from "@s
 import { RobertGuide, SiteHeader } from "@/components/SiteChrome";
 import { trpc } from "@/lib/trpc";
 import "@/components/AssessmentEnhancements.css";
+import "@/components/AssessmentColorSystem.css";
 
 type FieldProps = { label: string; field: keyof AssessmentInput; hint?: string; placeholder?: string; optional?: boolean; type?: "text" | "email" | "tel" | "number" };
 type AssessmentTextFieldProps = FieldProps & { value: string | number; draftValue?: string; onTextChange: (field: keyof AssessmentInput, value: string) => void; onNumberChange: (field: keyof AssessmentInput, value: string) => void; onNumberBlur: (field: keyof AssessmentInput) => void; };
@@ -22,6 +23,7 @@ const steps = [
   { code: "M", label: "Money & Tax" },
   { code: "S", label: "Security" },
 ];
+const stepThemes = ["business", "debt", "retirement", "expenses", "assets", "money", "security"] as const;
 
 const industries = ["Manufacturing", "Technology", "Healthcare", "Construction", "Transportation & Logistics", "Hospitality & Food Service", "Retail", "Professional Services", "Real Estate", "Financial Services", "Education", "Energy", "Agriculture", "Other"];
 const assessmentGuidanceIds = ["assessmentBusiness", "assessmentDebt", "assessmentRetirement", "assessmentExpenses", "assessmentAssets", "assessmentMoney", "assessmentSecurity"] as const;
@@ -101,12 +103,12 @@ export default function Assessment() {
 
   return <div className="app-page assessment-page">
     <SiteHeader compact />
-    <main className="assessment-main shell">
+    <main className={`assessment-main shell assessment-theme-${stepThemes[step]}`}>
       <div className="assessment-intro"><span className="eyebrow">Business financial assessment</span><h1>Build your DREAMS Score.</h1><p>Answer a few high-level questions. Your personalized report will show directional estimates across six business areas.</p></div>
       <div className="progress-card paper-card">
         <div className="progress-topline"><span>Step {step + 1} of 7</span><strong>{progress}%</strong></div>
         <div className="progress-track"><span style={{ width: `${progress}%` }} /></div>
-        <ol className="progress-steps">{steps.map((item, index) => <li key={item.code} className={index === step ? "active" : index < step ? "complete" : ""}><button type="button" onClick={() => setStep(index)} aria-label={`Go to ${item.label}`}><i>{index < step ? <Check size={12} /> : item.code}</i><span>{item.label}</span></button></li>)}</ol>
+        <ol className="progress-steps">{steps.map((item, index) => <li key={item.code} className={`assessment-step-${stepThemes[index]} ${index === step ? "active" : index < step ? "complete" : ""}`}><button type="button" onClick={() => setStep(index)} aria-label={`Go to ${item.label}`}><i>{index < step ? <Check size={12} /> : item.code}</i><span>{item.label}</span></button></li>)}</ol>
       </div>
       <section className="assessment-card paper-card">
         <div className="assessment-card-heading"><div><span className="eyebrow">{steps[step].code} · {steps[step].label}</span><h2>{step === 0 ? "Tell us about your business" : steps[step].label}</h2><p>{descriptions[step]}</p></div><span className="step-counter">0{step + 1}</span></div>
