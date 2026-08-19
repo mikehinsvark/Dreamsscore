@@ -62,31 +62,31 @@ export default function Assessment() {
       <TextField label="Years in business" field="yearsInBusiness" type="number" /> <TextField label="Building size (sq ft)" hint="Used to estimate energy opportunities" field="buildingSquareFeet" type="number" />
     </div>,
     <div className="assessment-fields two-col" key="debt">
-      <TextField label="Additional funding desired" hint="Capital that could support a current priority" field="fundingDesired" type="number" /> <TextField label="Current business debt" field="currentDebt" type="number" />
-      <TextField label="Monthly debt payments" field="monthlyDebtPayments" type="number" />
+      <TextField label="Additional funding desired" hint="Capital that could support a current priority" field="fundingDesired" optional placeholder="e.g., 250,000" type="number" /> <TextField label="Current business debt" field="currentDebt" optional placeholder="e.g., 180,000" type="number" />
+      <TextField label="Monthly debt payments" field="monthlyDebtPayments" optional placeholder="e.g., 8,500" type="number" />
       <label className="form-field"><span>Business credit profile</span><select value={form.creditProfile} onChange={(event) => setField("creditProfile", event.target.value as AssessmentInput["creditProfile"])}>{["Excellent", "Good", "Fair", "Building"].map((profile) => <option key={profile}>{profile}</option>)}</select></label>
     </div>,
     <div className="assessment-fields two-col" key="retirement">
-      <TextField label="Total retirement account balances" field="retirementAssets" type="number" /> <TextField label="Annual retirement contributions" field="annualRetirementContributions" type="number" />
-      <TextField label="Employer match" hint="Percentage" field="employerMatch" type="number" /> <TextField label="Employee participation rate" hint="Percentage" field="retirementParticipation" type="number" />
+      <TextField label="Total retirement account balances" field="retirementAssets" optional placeholder="e.g., 1,200,000" type="number" /> <TextField label="Annual retirement contributions" field="annualRetirementContributions" optional placeholder="e.g., 120,000" type="number" />
+      <TextField label="Employer match" hint="Percentage" field="employerMatch" optional placeholder="e.g., 4" type="number" /> <TextField label="Employee participation rate" hint="Percentage" field="retirementParticipation" optional placeholder="e.g., 60" type="number" />
     </div>,
     <div className="assessment-fields two-col" key="expenses">
-      <TextField label="Annual health-plan spend" field="annualHealthSpend" type="number" /> <TextField label="Annual benefits spend" field="annualBenefitsSpend" type="number" />
-      <TextField label="Annual energy spend" field="annualEnergySpend" type="number" />
+      <TextField label="Annual health-plan spend" field="annualHealthSpend" optional placeholder="e.g., 300,000" type="number" /> <TextField label="Annual benefits spend" field="annualBenefitsSpend" optional placeholder="e.g., 125,000" type="number" />
+      <TextField label="Annual energy spend" field="annualEnergySpend" optional placeholder="e.g., 80,000" type="number" />
       <label className="form-field checkbox-field"><span>Solar / energy efficiency interest</span><button className={`toggle-control ${form.solarInterest ? "on" : ""}`} type="button" role="switch" aria-checked={form.solarInterest} onClick={() => setField("solarInterest", !form.solarInterest)}><i />{form.solarInterest ? "Yes, explore it" : "Not currently"}</button></label>
     </div>,
     <div className="assessment-fields two-col" key="assets">
-      <TextField label="Monthly website leads" field="monthlyWebsiteLeads" type="number" /> <TextField label="Average lead value" field="averageLeadValue" type="number" />
-      <TextField label="Monthly marketing spend" field="monthlyMarketingSpend" type="number" />
+      <TextField label="Monthly website leads" field="monthlyWebsiteLeads" optional placeholder="e.g., 45" type="number" /> <TextField label="Average lead value" field="averageLeadValue" optional placeholder="e.g., 4,500" type="number" />
+      <TextField label="Monthly marketing spend" field="monthlyMarketingSpend" optional placeholder="e.g., 12,000" type="number" />
       <label className="form-field checkbox-field"><span>Reputation management focus</span><button className={`toggle-control ${form.reputationFocus ? "on" : ""}`} type="button" role="switch" aria-checked={form.reputationFocus} onClick={() => setField("reputationFocus", !form.reputationFocus)}><i />{form.reputationFocus ? "Included" : "Not currently"}</button></label>
     </div>,
     <div className="assessment-fields two-col" key="money">
-      <TextField label="Annual research / product-development spend" field="annualResearchSpend" type="number" /> <TextField label="Annual FICA tip wages" field="annualTipWages" type="number" />
-      <TextField label="Known or expected state credits" field="expectedStateCredits" type="number" />
+      <TextField label="Annual research / product-development spend" field="annualResearchSpend" optional placeholder="e.g., 150,000" type="number" /> <TextField label="Annual FICA tip wages" field="annualTipWages" optional placeholder="e.g., 40,000" type="number" />
+      <TextField label="Known or expected state credits" field="expectedStateCredits" optional placeholder="e.g., 12,000" type="number" />
     </div>,
     <div className="assessment-fields two-col" key="security">
-      <TextField label="Annual corporate life insurance premiums" field="annualLifePremiums" type="number" /> <TextField label="Key-person roles to protect" field="keyPersonCount" type="number" />
-      <TextField label="Monthly cloud / IT spend" field="monthlyItSpend" type="number" />
+      <TextField label="Annual corporate life insurance premiums" field="annualLifePremiums" optional placeholder="e.g., 45,000" type="number" /> <TextField label="Key-person roles to protect" field="keyPersonCount" optional placeholder="e.g., 2" type="number" />
+      <TextField label="Monthly cloud / IT spend" field="monthlyItSpend" optional placeholder="e.g., 8,000" type="number" />
     </div>,
   ];
 
