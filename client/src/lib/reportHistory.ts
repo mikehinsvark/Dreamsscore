@@ -6,6 +6,8 @@ export type ReportHistoryEntry = {
   savedAt: number;
 };
 
+export type ReportHistorySort = "newest" | "potential";
+
 export const REPORT_HISTORY_KEY = "dreams-score-report-history-v1";
 export const REPORT_HISTORY_UPDATED_EVENT = "dreams-score-report-history-updated";
 
@@ -19,6 +21,26 @@ export function generatedDateKey(generatedAt: string): string {
 export function filterReportHistory(entries: ReportHistoryEntry[], query: string, generatedDate: string): ReportHistoryEntry[] {
   const normalizedQuery = query.trim().toLocaleLowerCase();
   return entries.filter((entry) => (!normalizedQuery || entry.companyName.toLocaleLowerCase().includes(normalizedQuery)) && (!generatedDate || generatedDateKey(entry.generatedAt) === generatedDate));
+}
+
+export function sortReportHistory(entries: ReportHistoryEntry[], sort: ReportHistorySort): ReportHistoryEntry[] {
+  return [...entries].sort((left, right) => {
+    if (sort === "potential") {
+      return right.totalPotentialValue - left.totalPotentialValue || new Date(right.generatedAt).getTime() - new Date(left.generatedAt).getTime();
+    }
+    return new Date(right.generatedAt).getTime() - new Date(left.generatedAt).getTime() || right.savedAt - left.savedAt;
+  });
+}
+
+function csvCell(value: string | number): string {
+  const text = String(value);
+  return /[",\r\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
+}
+
+export function createReportHistoryCsv(entries: ReportHistoryEntry[]): string {
+  const header = ["Report ID", "Company Name", "Generated Date", "Potential Value", "Saved To Device"];
+  const rows = entries.map((entry) => [entry.id, entry.companyName, entry.generatedAt, entry.totalPotentialValue, new Date(entry.savedAt).toISOString()]);
+  return `\uFEFF${[header, ...rows].map((row) => row.map(csvCell).join(",")).join("\r\n")}\r\n`;
 }
 
 export function readReportHistory(): ReportHistoryEntry[] {

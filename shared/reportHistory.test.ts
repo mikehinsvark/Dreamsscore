@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { clearReportHistory, filterReportHistory, generatedDateKey, readReportHistory, REPORT_HISTORY_UPDATED_EVENT, saveReportHistoryEntry } from "../client/src/lib/reportHistory";
+import { clearReportHistory, createReportHistoryCsv, filterReportHistory, generatedDateKey, readReportHistory, REPORT_HISTORY_UPDATED_EVENT, saveReportHistoryEntry, sortReportHistory } from "../client/src/lib/reportHistory";
 
 const store = new Map<string, string>();
 const dispatchEvent = vi.fn();
@@ -29,5 +29,18 @@ describe("same-device report history", () => {
     expect(filterReportHistory(entries, "NORTH", "")).toHaveLength(1);
     expect(filterReportHistory(entries, "", generatedDateKey(entries[1].generatedAt))).toEqual([entries[1]]);
     expect(filterReportHistory(entries, "missing", "")).toEqual([]);
+  });
+
+  it("sorts by newest or highest potential value and serializes spreadsheet-safe CSV", () => {
+    const entries = [
+      { id: "northstar", companyName: "Northstar, Distribution", generatedAt: "2026-08-19T14:00:00.000Z", totalPotentialValue: 525_000, savedAt: 1 },
+      { id: "peak", companyName: "Peak Manufacturing", generatedAt: "2026-08-18T14:00:00.000Z", totalPotentialValue: 850_000, savedAt: 2 },
+    ];
+    expect(sortReportHistory(entries, "newest").map((entry) => entry.id)).toEqual(["northstar", "peak"]);
+    expect(sortReportHistory(entries, "potential").map((entry) => entry.id)).toEqual(["peak", "northstar"]);
+    const csv = createReportHistoryCsv(entries);
+    expect(csv).toContain("Report ID,Company Name,Generated Date,Potential Value,Saved To Device");
+    expect(csv).toContain('"Northstar, Distribution"');
+    expect(csv).toContain("peak,Peak Manufacturing");
   });
 });
