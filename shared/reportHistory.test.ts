@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { clearReportHistory, readReportHistory, REPORT_HISTORY_UPDATED_EVENT, saveReportHistoryEntry } from "../client/src/lib/reportHistory";
+import { clearReportHistory, filterReportHistory, generatedDateKey, readReportHistory, REPORT_HISTORY_UPDATED_EVENT, saveReportHistoryEntry } from "../client/src/lib/reportHistory";
 
 const store = new Map<string, string>();
 const dispatchEvent = vi.fn();
@@ -19,5 +19,15 @@ describe("same-device report history", () => {
     expect(dispatchEvent).toHaveBeenCalledWith(expect.objectContaining({ type: REPORT_HISTORY_UPDATED_EVENT }));
     clearReportHistory();
     expect(readReportHistory()).toEqual([]);
+  });
+
+  it("filters saved reports by case-insensitive company name and generated date", () => {
+    const entries = [
+      { id: "northstar", companyName: "Northstar Distribution", generatedAt: "2026-08-19T14:00:00.000Z", totalPotentialValue: 525_000, savedAt: 1 },
+      { id: "peak", companyName: "Peak Manufacturing", generatedAt: "2026-08-18T14:00:00.000Z", totalPotentialValue: 850_000, savedAt: 2 },
+    ];
+    expect(filterReportHistory(entries, "NORTH", "")).toHaveLength(1);
+    expect(filterReportHistory(entries, "", generatedDateKey(entries[1].generatedAt))).toEqual([entries[1]]);
+    expect(filterReportHistory(entries, "missing", "")).toEqual([]);
   });
 });

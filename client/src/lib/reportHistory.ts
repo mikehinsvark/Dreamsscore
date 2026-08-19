@@ -9,6 +9,18 @@ export type ReportHistoryEntry = {
 export const REPORT_HISTORY_KEY = "dreams-score-report-history-v1";
 export const REPORT_HISTORY_UPDATED_EVENT = "dreams-score-report-history-updated";
 
+export function generatedDateKey(generatedAt: string): string {
+  const date = new Date(generatedAt);
+  if (Number.isNaN(date.getTime())) return "";
+  const offset = date.getTimezoneOffset() * 60_000;
+  return new Date(date.getTime() - offset).toISOString().slice(0, 10);
+}
+
+export function filterReportHistory(entries: ReportHistoryEntry[], query: string, generatedDate: string): ReportHistoryEntry[] {
+  const normalizedQuery = query.trim().toLocaleLowerCase();
+  return entries.filter((entry) => (!normalizedQuery || entry.companyName.toLocaleLowerCase().includes(normalizedQuery)) && (!generatedDate || generatedDateKey(entry.generatedAt) === generatedDate));
+}
+
 export function readReportHistory(): ReportHistoryEntry[] {
   if (typeof window === "undefined") return [];
   try {
