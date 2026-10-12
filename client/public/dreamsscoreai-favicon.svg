@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title desc">
+  <title id="title">DREAMS Score</title>
+  <desc id="desc">An ascending business score chart in teal and gold on a navy rounded tile.</desc>
+  <rect x="4" y="4" width="56" height="56" rx="16" fill="#173a58"/>
+  <rect x="5.5" y="5.5" width="53" height="53" rx="14.5" fill="none" stroke="#d7b670" stroke-opacity=".55"/>
+  <path d="M17 16v30h30" fill="none" stroke="#dff5f1" stroke-linecap="round" stroke-linejoin="round" stroke-width="3.2"/>
+  <path d="M27 42V33M36 42V25M45 42V17" fill="none" stroke="#48d7cb" stroke-linecap="round" stroke-width="5"/>
+  <circle cx="47" cy="17" r="4.5" fill="#b6904f"/>
+  <circle cx="47" cy="17" r="1.55" fill="#fffaf0"/>
+</svg>
